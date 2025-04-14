@@ -44,8 +44,8 @@ def game_thread():
 	spawn_interval = 2
 
 	while True:
-		if not game_over
-			for event in pygame.event.get()
+		if not game_over:
+			for event in pygame.event.get():
 				if event.type == pygame.QUIT:
 					pygame.quit()
 					sys.exit()
