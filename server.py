@@ -1,5 +1,3 @@
-# Spongebob GameServer.py
-
 import threading
 import pygame
 import socket
