@@ -1,6 +1,5 @@
-# Spongebob GameClient.py
 
-import pynput
+from pynput import keyboard
 import socket
 import time
 
@@ -20,29 +19,31 @@ def client_program():
 
 	print("Use WASD or arrow keys to move the bucket. Press 'q' to quit.")
 
-	while True:
-		if keyboard.is_pressed('q'):
-			break
-		keys = {
-			'left': keyboard.is_pressed('left') or keyboard.is_pressed('a'),
-			'right': keyboard.is_pressed('right') or keyboard.is_pressed('d'),
-			'up': keyboard.is_pressed('up') or keyboard.is_pressed('w'),
-			'down': keyboard.is_pressed('down') or keyboard.is_pressed('d')
-		}
+	def on_press(key):
+		try:
+			if key == keyboard.Key.left or key.char == 'a':
+				client_socket.send('left'.encode())
+			elif key == keyboard.Key.right or key.char == 'd':
+				client_socket.send('right'.encode())
+			elif key == keyboard.Key.up or key.char == 'w':
+				client_socket.send('up'.encode())
+			elif key == keyboard.Key.down or key.char == 's':
+				client_socket.send('down'.encode())
+			elif key.char == 'q':
+				return False
+		except AttributeError:
+			pass
+		except Exception as e:
+			print(f"Server disconnected: {e}")
+			return False
+		
+		time.sleep(0.05)
 
-		for key, pressed in keys.item():
-			if pressed:
-				try:
-					client_socket.send(key.encode())
-				except:
-					print("Server disconnected")
-					client_socket.close()
-					return
-				time.sleep(0.05)
+	with keyboard.Listener(on_press=on_press) as listener:
+		listener.join()
+
 	client_socket.close()
 	print("Connection closed")
 
 if __name__ == '__main__':
 	client_program()
-
-	
