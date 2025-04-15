@@ -15,6 +15,7 @@ game_over = False
 last_speed_increase = time.time()
 speed_increase_interval = 10
 speed_increment = 0.5
+screen_width, screen_height = 600, 400
 
 def load_image(filename, size=None):
 	try:
@@ -22,8 +23,8 @@ def load_image(filename, size=None):
 		if size:
 			img = pygame.transform.scale(img, size)
 		return img
-	except:
-		print(f"Error loading {filename}")
+	except Exception as e:
+		print(f"Error loading {filename}: {e}")
 		sys.exit()
 
 def game_thread():
@@ -35,11 +36,9 @@ def game_thread():
 	
 	background = load_image('background.jpg', screen_size)
 	bucket = load_image('bucket.jpg', (50, 50))
-	patty = load_image('patty.jpg', (30, 30))
-
-	fps.pygame.time.Clock()
+	patty = load_image('patty1.jpg', (30, 30))
+	fps = pygame.time.Clock()
 	font = pygame.font.SysFont('arial', 24)
-
 	last_spawn = time.time()
 	spawn_interval = 2
 
@@ -66,11 +65,10 @@ def game_thread():
 				p[1] += p[2]
 				if p[1] > screen_height:
 					game_over = True
-					patties = []
 					break
+
 				bucket_rect = pygame.Rect(bucket_pos[0], bucket_pos[1], 50, 50)
 				patty_rect = pygame.Rect(p[0], p[1], 30, 30)
-
 				if bucket_rect.colliderect(patty_rect):
 					score += 1
 					patties.remove(p)
@@ -80,26 +78,27 @@ def game_thread():
 				for p in patties:
 					p[2] += speed_increment
 				last_speed_increase = time.time()
+
 		screen.blit(background, (0,0))
 		if not game_over:
 			screen.blit(bucket, bucket_pos)
 			for p in patties:
 				screen.blit(patty, (p[0], p[1]))
+
 		else:
 			game_over_text = font.render("Game over! Press 'r' to restart", True, (255, 0, 0))
 			screen.blit(game_over_text, (screen_width // 2 - 150, screen_height // 2))
+
 		score_text = font.render(f"Score: {score}", True, (0,0,0))
 		screen.blit(score_text, (10, 10))
-
 		pygame.display.update()
 		fps.tick(60)
 
 def server_thread():
-	global bucket_pos, bucket_speed
+	global bucket_pos, bucket_speed, screen_width, screen_height
 	
 	host = ''
 	port = 5000
-
 	server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	server_socket.bind((host, port))
 	server_socket.listen(2)
@@ -121,13 +120,15 @@ def server_thread():
 				bucket_pos[1] -= bucket_speed
 			elif data == 'down' and bucket_pos[1] < screen_height - 50:
 				bucket_pos[1] += bucket_speed
-		except:
-			print("Client disconnected")
+		except Exception as e:
+			print(f"Client disconnected: {e}")
 			break
-	conn.close
+
+	conn.close()
 	server_socket.close()
 
-t1 = threading.Thread(target=game_thread)
-t2 = threading.Thread(target=server_thread)
-t1.start()
-t2.start()
+if __name__ == "__main__":
+	t1 = threading.Thread(target=game_thread)
+	t2 = threading.Thread(target=server_thread)
+	t1.start()
+	t2.start()
