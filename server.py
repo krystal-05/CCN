@@ -15,6 +15,54 @@ speed_increase_interval = 10
 speed_increment = 0.5
 screen_width, screen_height = 600, 400
 
+#load button images(not made yet)
+start_img = pygame.image.load('start_btn.png') 
+exit_img = pygame.image.load('exit_btn.png')
+restart_img = pygame.image.load('restart_btn.png')
+menu_img = pygame.image.load('menu_btn.png')
+
+#button class for start/quit/restart game and main menu
+class Button():
+    #constructor
+    def __init__ (self, x, y, image, scale):
+        width = image.get_width()
+        height = image.get_height()
+        self.image = pygame.transform.scale(image,(int(width * scale), int(height * scale)))
+        #maybe scaling will help the bucket issue 
+        self.image = image
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (x,y)
+        self.clicked = False 
+
+    #draw buttons on screen
+    def draw(self):
+        action = False 
+        #get mouse position 
+        pos = pygame.mouse.get_pos()
+
+        #check if mouse is over a button 
+        if self.rect.collidepoint(pos):
+            if pygame.mouse.get_pressed()[0] == 1 and self.clicked == False: ##if leftmost button is clicked
+                self.clicked = True
+                action = True 
+        
+        if pygame.mouse.get_pressed()[0] == 0:
+            self.clicked = False
+
+        #blit transfers image onto the screen
+        screen.blit(self.image, (self.rect.x, self.rect.y))
+
+        return action
+
+#create button instances 
+#scale values may need to change 
+start_button = Button(100, 200, start_img, 0.8) 
+exit_button = Button(200, 200, exit_img, 0.8)
+restart_button = Button(300, 200, restart_img, 0.8)
+menu_button = Button(400, 300, menu_img, 0.8)
+pause_button = Button(400, 300, menu_img, 0.8)
+
+
 def load_image(filename, size=None):
 	try:
 		img = pygame.image.load(filename)
@@ -25,6 +73,22 @@ def load_image(filename, size=None):
 		print(f"Error loading {filename}: {e}")
 		sys.exit()
 
+def main_menu():
+    pygame.init()
+	screen_size = screen_width, screen_height = 600, 400
+	screen = pygame.display.set_mode(screen_size)
+    pygame.display.set_caption('Spongebob Bucket Catch - Main Menu')
+    menuBackground = load_image('field.png', screen_size)
+
+    while True:
+        screen.blit(menuBackground, (0, 0))
+
+        if start_button.draw(screen):
+            return game_thread()
+
+        pygame.display.update()
+
+
 def game_thread():
 	global bucket_pos, patties, score, game_over, bucket_speed, last_speed_increase
 	pygame.init()
@@ -32,9 +96,9 @@ def game_thread():
 	screen = pygame.display.set_mode(screen_size)
 	pygame.display.set_caption('Spongebob Bucket Catch')
 	
-	background = load_image('background.jpg', screen_size)
-	bucket = load_image('bucket.jpg', (50, 50))
-	patty = load_image('patty1.jpg', (30, 30))
+	background = load_image('field.png', screen_size)
+	bucket = load_image('bucket.png', (50, 50))
+	patty = load_image('patty1.png', (30, 30))
 	fps = pygame.time.Clock()
 	font = pygame.font.SysFont('arial', 24)
 	last_spawn = time.time()
@@ -86,6 +150,9 @@ def game_thread():
 		else:
 			game_over_text = font.render("Game over! Press 'r' to restart", True, (255, 0, 0))
 			screen.blit(game_over_text, (screen_width // 2 - 150, screen_height // 2))
+            exit_button.draw()
+            restart_button.draw()
+            menu_button.draw()
 
 		score_text = font.render(f"Score: {score}", True, (0,0,0))
 		screen.blit(score_text, (10, 10))
@@ -124,9 +191,14 @@ def server_thread():
 
 	conn.close()
 	server_socket.close()
+#I think the reason the game is crashing when its over is because we dont have pygame.quit().
+#This handles the networking and closes the connection with the server but we need to close the game window.
 
 if __name__ == "__main__":
-	t1 = threading.Thread(target=game_thread)
-	t2 = threading.Thread(target=server_thread)
-	t1.start()
-	t2.start()
+    t2 = threading.Thread(target=server_thread)  # server in background
+    t2.start()
+    game_thread()
+
+
+# Check to see if button and main menu functionality works
+# Rest of need-to-do list needs to be implemented, will do over weekend
