@@ -17,7 +17,7 @@ screen_width, screen_height = 600, 400
 
 #load button images(not made yet)
 start_img = pygame.image.load('start_btn.png') 
-exit_img = pygame.image.load('exit_btn.png')
+quit_img = pygame.image.load('quit_btn.png')
 restart_img = pygame.image.load('restart_btn.png')
 menu_img = pygame.image.load('menu_btn.png')
 
@@ -57,10 +57,10 @@ class Button():
 #create button instances 
 #scale values may need to change 
 start_button = Button(100, 200, start_img, 0.8) 
-exit_button = Button(200, 200, exit_img, 0.8)
+quit_button = Button(200, 200, quit_img, 0.8)
 restart_button = Button(300, 200, restart_img, 0.8)
 menu_button = Button(400, 300, menu_img, 0.8)
-pause_button = Button(400, 300, menu_img, 0.8)
+
 
 
 def load_image(filename, size=None):
@@ -78,7 +78,7 @@ def main_menu():
     screen_size = screen_width, screen_height = 600, 400
     screen = pygame.display.set_mode(screen_size)
     pygame.display.set_caption('Spongebob Bucket Catch - Main Menu')
-    menuBackground = load_image('field.png', screen_size)
+    menuBackground = load_image('background.png', screen_size)
 
     while True:
         screen.blit(menuBackground, (0, 0))
@@ -94,7 +94,7 @@ def game_thread():
 	screen = pygame.display.set_mode(screen_size)
 	pygame.display.set_caption('Spongebob Bucket Catch')
 	
-	background = load_image('field.png', screen_size)
+	background = load_image('background.png', screen_size)
 	bucket = load_image('bucket.png', (50, 50))
 	patty = load_image('patty1.png', (30, 30))
 	fps = pygame.time.Clock()
@@ -148,7 +148,7 @@ def game_thread():
 		else:
 			game_over_text = font.render("Game over! Press 'r' to restart", True, (255, 0, 0))
 			screen.blit(game_over_text, (screen_width // 2 - 150, screen_height // 2))
-			exit_button.draw()
+			quit_button.draw()
 			restart_button.draw()
 			menu_button.draw()
 			pygame.quit()
@@ -161,10 +161,12 @@ def game_thread():
 def server_thread():
 	global bucket_pos, bucket_speed, screen_width, screen_height
 	
-	host = '10.22.0.42'
+	#host = socket.gethostbyname(socket.gethostname())
+	#print(host)
+	host = "172.20.10.9"
 	port = 5001
 	server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	server_socket.bind((host, port))
+	server_socket.connect((host,port))
 	server_socket.listen(2)
 	print("Server enabled, waiting for client...")
 
