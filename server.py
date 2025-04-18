@@ -35,7 +35,7 @@ class Button():
         self.clicked = False 
 
     #draw buttons on screen
-    def draw(self):
+    def draw(self, surface):
         action = False 
         #get mouse position 
         pos = pygame.mouse.get_pos()
@@ -50,7 +50,7 @@ class Button():
             self.clicked = False
 
         #blit transfers image onto the screen
-        screen.blit(self.image, (self.rect.x, self.rect.y))
+        surface.blit(self.image, (self.rect.x, self.rect.y))
 
         return action
 
@@ -75,8 +75,8 @@ def load_image(filename, size=None):
 
 def main_menu():
     pygame.init()
-	screen_size = screen_width, screen_height = 600, 400
-	screen = pygame.display.set_mode(screen_size)
+    screen_size = screen_width, screen_height = 600, 400
+    screen = pygame.display.set_mode(screen_size)
     pygame.display.set_caption('Spongebob Bucket Catch - Main Menu')
     menuBackground = load_image('field.png', screen_size)
 
@@ -85,8 +85,6 @@ def main_menu():
 
         if start_button.draw(screen):
             return game_thread()
-
-        pygame.display.update()
 
 
 def game_thread():
@@ -150,10 +148,11 @@ def game_thread():
 		else:
 			game_over_text = font.render("Game over! Press 'r' to restart", True, (255, 0, 0))
 			screen.blit(game_over_text, (screen_width // 2 - 150, screen_height // 2))
-            exit_button.draw()
-            restart_button.draw()
-            menu_button.draw()
-
+			quit_button.draw()
+			restart_button.draw()
+			menu_button.draw()
+			pygame.quit()
+			sys.exit()
 		score_text = font.render(f"Score: {score}", True, (0,0,0))
 		screen.blit(score_text, (10, 10))
 		pygame.display.update()
@@ -162,8 +161,8 @@ def game_thread():
 def server_thread():
 	global bucket_pos, bucket_speed, screen_width, screen_height
 	
-	host = ''
-	port = 5000
+	host = '10.22.0.74'
+	port = 5001
 	server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	server_socket.bind((host, port))
 	server_socket.listen(2)
@@ -181,9 +180,6 @@ def server_thread():
 				bucket_pos[0] -= bucket_speed
 			elif data == 'right' and bucket_pos[0] < screen_width - 50:
 				bucket_pos[0] += bucket_speed
-			elif data == 'up' and bucket_pos[1] > 0:
-				bucket_pos[1] -= bucket_speed
-			elif data == 'down' and bucket_pos[1] < screen_height - 50:
 				bucket_pos[1] += bucket_speed
 		except Exception as e:
 			print(f"Client disconnected: {e}")
@@ -191,13 +187,14 @@ def server_thread():
 
 	conn.close()
 	server_socket.close()
+   
 #I think the reason the game is crashing when its over is because we dont have pygame.quit().
 #This handles the networking and closes the connection with the server but we need to close the game window.
 
 if __name__ == "__main__":
     t2 = threading.Thread(target=server_thread)  # server in background
     t2.start()
-    game_thread()
+    main_menu()
 
 
 # Check to see if button and main menu functionality works
