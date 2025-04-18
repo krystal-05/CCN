@@ -148,7 +148,7 @@ def game_thread():
 		else:
 			game_over_text = font.render("Game over! Press 'r' to restart", True, (255, 0, 0))
 			screen.blit(game_over_text, (screen_width // 2 - 150, screen_height // 2))
-			quit_button.draw()
+			exit_button.draw()
 			restart_button.draw()
 			menu_button.draw()
 			pygame.quit()
@@ -161,7 +161,7 @@ def game_thread():
 def server_thread():
 	global bucket_pos, bucket_speed, screen_width, screen_height
 	
-	host = '10.22.0.74'
+	host = '10.22.0.42'
 	port = 5001
 	server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	server_socket.bind((host, port))
