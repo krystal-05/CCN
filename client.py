@@ -3,8 +3,8 @@ import socket
 import time
 
 def client_program():
-    print("Trying to connect to the server...")
-    host = "192.168.1.122" # Change this depending on the IP address of the host
+    print("Trying to connect to server...")
+    host = "10.x.x.x"  # Update this to the server's IP address
     port = 5000
 
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -15,8 +15,8 @@ def client_program():
     except Exception as e:
         print(f"Connection failed: {e}")
         return
-    
-    print("Press A/D to move the bucket left/right, W/S to move up/down. Press 'r' to start/restart. Press 'q' to quit.")
+
+    print("Use A/D or arrow keys to move the bucket left/right, W/S or up/down arrows to move up/down. Press 'r' to start/restart. Press 'q' to quit.")
 
     def on_press(key):
         try:
