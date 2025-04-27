@@ -5,13 +5,13 @@ import sys
 import random
 import time
 
-#These are the game settings
 screen_width, screen_height = 1200, 720
 bucket_size = (300, 300)
 patty_size = (200, 200)
-bucket_collision_size = (int(bucket_size[0] * 0.5), int(bucket_size[1] * 0.5))
+bucket_collision_size = (int(bucket_size[0] * 0.3), int(bucket_size[1] * 0.3))
 patty_collision_size = (int(patty_size[0] * 0.3), int(patty_size[1] * 0.3))
-bucket_speed = 50
+initial_bucket_speed = 60  
+base_patty_speed = 3      
 min_x = 0
 max_x = screen_width - bucket_size[0]
 min_y = 0
@@ -22,7 +22,9 @@ score = 0
 state = 'start'
 last_speed_increase = time.time()
 speed_increase_interval = 0.7
-speed_increment = 2.0
+speed_increment = 0.08
+bucket_speed = initial_bucket_speed
+current_patty_speed = base_patty_speed  
 
 def load_image(filename, size=None):
     try:
@@ -35,7 +37,7 @@ def load_image(filename, size=None):
         sys.exit()
 
 def start_game():
-    global state, bucket_pos, patties, score, last_speed_increase, last_spawn
+    global state, bucket_pos, patties, score, last_speed_increase, last_spawn, bucket_speed, current_patty_speed
     print("Starting game: Transitioning to the 'playing' state")
     state = 'playing'
     bucket_pos = [screen_width // 2 - bucket_size[0] // 2, screen_height - bucket_size[1]]
@@ -43,9 +45,11 @@ def start_game():
     score = 0
     last_speed_increase = time.time()
     last_spawn = time.time()
+    bucket_speed = initial_bucket_speed
+    current_patty_speed = base_patty_speed  
 
 def game_thread():
-    global bucket_pos, patties, score, state, bucket_speed, last_speed_increase, last_spawn
+    global bucket_pos, patties, score, state, bucket_speed, current_patty_speed, last_speed_increase, last_spawn
     pygame.init()
     screen = pygame.display.set_mode((screen_width, screen_height))
     pygame.display.set_caption('Spongebob Bucket Catch')
@@ -65,13 +69,11 @@ def game_thread():
                 sys.exit()
 
         if state == 'playing':
-            # This controls spawning the patties
             if time.time() - last_spawn > spawn_interval:
                 x = random.randint(0, screen_width - patty_size[0])
-                patties.append([x, 50, 3])
+                patties.append([x, 50, current_patty_speed])  
                 last_spawn = time.time()
 
-            # This moves the patties and checks if the game should be over
             for p in patties[:]:
                 p[1] += p[2]
                 if p[1] > screen_height:
@@ -79,7 +81,6 @@ def game_thread():
                     state = 'game_over'
                     break
 
-                # This controls collision detection
                 bucket_rect = pygame.Rect(
                     bucket_pos[0] + (bucket_size[0] - bucket_collision_size[0]) // 2,
                     bucket_pos[1] + (bucket_size[1] - bucket_collision_size[1]) // 2,
@@ -95,15 +96,12 @@ def game_thread():
                 if bucket_rect.colliderect(patty_rect):
                     score += 1
                     patties.remove(p)
-                
-            # This controls the increase in speed
+
             if time.time() - last_speed_increase > speed_increase_interval:
                 bucket_speed += speed_increment
-                for p in patties:
-                    p[2] += speed_increment
+                current_patty_speed += speed_increment  
                 last_speed_increase = time.time()
 
-        # This handles rendering
         screen.blit(background, (0, 0))
         if state == 'playing':
             screen.blit(bucket, bucket_pos)
@@ -115,7 +113,7 @@ def game_thread():
         elif state == 'game_over':
             game_over_text = font.render("Game over! Player can press 'r' to restart", True, (255, 0, 0))
             screen.blit(game_over_text, (screen_width // 2 - 300, screen_height // 2 - 50))
-        
+
         score_text = font.render(f"Score: {score}", True, (0, 0, 0))
         screen.blit(score_text, (10, 10))
         pygame.display.update()
