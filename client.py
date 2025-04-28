@@ -4,7 +4,7 @@ import time
 
 def client_program():
     print("Trying to connect to server...")
-    host = "10.x.x.x"  # Update this to the server's IP address
+    host = "10.22.8.113"  # Update this to the server's IP address
     port = 5000
 
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
